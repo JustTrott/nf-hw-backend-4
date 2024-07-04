@@ -2,6 +2,9 @@ import { NextFunction, Request, Response } from 'express'
 import AuthService from '../routes/auth/auth-service'
 
 const authService = new AuthService()
+export interface AuthenticatedRequest extends Request {
+  authUser?: { id: string; email: string }
+}
 
 export const authMiddleware = (
   req: Request,
@@ -20,6 +23,6 @@ export const authMiddleware = (
     return res.status(401).json({ message: 'Invalid or expired token' })
   }
 
-  ;(req as any).user = payload
+  ;(req as AuthenticatedRequest).authUser = payload
   next()
 }

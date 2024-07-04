@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { CreateUserDto } from './dtos/CreateUser.dto'
+import { CreateUserDto } from '../users/dtos/CreateUser.dto'
 import AuthService from './auth-service'
 
 class AuthController {

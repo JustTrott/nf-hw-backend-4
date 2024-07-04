@@ -1,12 +1,18 @@
-import { CreateUserDto } from './dtos/CreateUser.dto'
-import { IUser } from './models/User'
-import UserModel from './models/User'
+import { CreateUserDto } from '../users/dtos/CreateUser.dto'
+import { IUser } from '../users/models/User'
+import UserModel from '../users/models/User'
+import PlaylistModel from '../playlists/models/Playlist'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
 import RefreshTokenModel from './models/RefreshToken'
 
 dotenv.config()
+
+export interface JwtPayload {
+  id: string
+  email: string
+}
 
 class AuthService {
   private readonly jwtSecret = process.env.JWT_SECRET!
@@ -16,11 +22,21 @@ class AuthService {
     const { email, password, username } = createUserDto
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    // create empty favorites playlist for  user
+
     const newUser = new UserModel({
       email,
-      username,
-      password: hashedPassword
+      password: hashedPassword,
+      username
     })
+
+    const favorites = new PlaylistModel({
+      title: 'Favorites',
+      user: newUser._id
+    })
+
+    await favorites.save()
+    newUser.playlists.push(favorites._id as any)
 
     await newUser.save()
     return newUser
@@ -66,9 +82,9 @@ class AuthService {
     )
   }
 
-  verifyJwt(token: string): any {
+  verifyJwt(token: string): JwtPayload | null {
     try {
-      return jwt.verify(token, this.jwtSecret)
+      return jwt.verify(token, this.jwtSecret) as JwtPayload
     } catch (err) {
       return null
     }
